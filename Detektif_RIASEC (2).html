@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Detektif RIASEC</title>
+<style>
+:root{--ink:#19352f;--green:#246b55;--mint:#eaf5ef;--gold:#e9b85c}
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:linear-gradient(135deg,#eaf5ef,#f8f4e8);color:var(--ink);min-height:100vh;padding:20px}
+main{max-width:760px;margin:24px auto;background:#fff;border-radius:22px;padding:26px;box-shadow:0 12px 35px #17382b18}
+h1{margin:4px 0 8px;font-size:clamp(28px,6vw,42px)}.sub{color:#58736a;line-height:1.5}
+.pills{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}.pill{background:var(--mint);padding:8px 12px;border-radius:30px;font-size:13px;font-weight:bold}
+button{border:0;border-radius:12px;padding:13px 17px;font-weight:bold;cursor:pointer;background:var(--green);color:white;font-size:15px}
+button.secondary{background:#edf3ef;color:var(--ink)}button:disabled{opacity:.5;cursor:not-allowed}
+.progress{height:9px;background:#edf2ee;border-radius:9px;overflow:hidden;margin:16px 0}.bar{height:100%;background:var(--gold);width:0}
+.question{font-size:21px;line-height:1.4;margin:18px 0}.options{display:grid;gap:10px}.opt{width:100%;text-align:left;background:#f3f7f4;color:var(--ink);border:2px solid transparent}.opt:hover{border-color:var(--green)}.opt.selected{background:#e2f1e8;border-color:var(--green)}
+.feedback{margin-top:14px;padding:13px;border-radius:12px;background:#fff6df;line-height:1.5}
+.small{font-size:13px;color:#71847d}.hidden{display:none}.result{background:var(--mint);padding:18px;border-radius:16px;margin:16px 0}.score{font-size:36px;font-weight:bold;color:var(--green)}
+footer{margin-top:24px;color:#80928b;font-size:12px;text-align:center}
+</style>
+</head>
+<body>
+<main>
+<div class="small">PERMAINAN EDUKATIF • TEORI KEPRIBADIAN KARIER HOLLAND</div>
+<section id="start">
+<h1>🕵️ Detektif RIASEC</h1>
+<p class="sub">Pecahkan enam kasus, baca petunjuknya, lalu temukan tipe minat karier yang paling sesuai. Kumpulkan poin sebanyak mungkin!</p>
+<div class="pills"><span class="pill">6 Kasus Misteri</span><span class="pill">Skor Otomatis</span><span class="pill">Tantangan Final</span></div>
+<p><b>Cara bermain:</b> Baca setiap situasi, pilih jawaban yang paling tepat, lalu lihat penjelasannya. Setiap jawaban benar mendapat 10 poin.</p>
+<button onclick="begin()">Mulai Permainan →</button>
+</section>
+<section id="game" class="hidden">
+<div class="small" id="counter"></div><div class="progress"><div class="bar" id="bar"></div></div>
+<div class="question" id="question"></div><div class="options" id="options"></div>
+<div id="feedback" class="feedback hidden"></div>
+<div style="display:flex;justify-content:flex-end;margin-top:18px"><button id="next" disabled onclick="nextQ()">Kasus Berikutnya →</button></div>
+</section>
+<section id="end" class="hidden">
+<h1>🎉 Misi Selesai!</h1><p class="sub">Inilah hasil penyelidikanmu.</p>
+<div class="result"><div class="small">TOTAL POIN</div><div class="score" id="score"></div><b id="rank"></b></div>
+<h3>Kenali 6 Tipe RIASEC</h3><p class="sub" id="summary"></p>
+<button onclick="restart()">Main Lagi ↻</button>
+</section>
+<footer>Detektif RIASEC • Bahan belajar Bimbingan dan Konseling Karier</footer>
+</main>
+<script>
+const qs=[
+{q:"Kasus 1 — Di sekolah ada alat praktik yang rusak. Raka senang membongkar, memperbaiki, dan mencoba alat itu secara langsung. Tipe apakah yang paling menggambarkan Raka?",a:["Realistic (R)","Investigative (I)","Social (S)"],c:0,e:"Realistic menyukai kegiatan praktis, menggunakan alat, memperbaiki, dan bekerja langsung dengan benda."},
+{q:"Kasus 2 — Sinta penasaran mengapa nilai kelas menurun. Ia mengumpulkan data, membaca hasil penelitian, lalu mencari penyebabnya. Tipe apakah Sinta?",a:["Artistic (A)","Investigative (I)","Enterprising (E)"],c:1,e:"Investigative menyukai berpikir, meneliti, menganalisis, dan memecahkan masalah."},
+{q:"Kasus 3 — Dimas suka membuat poster dengan ide unik, menggambar, dan mengekspresikan gagasan melalui karya. Tipe apakah Dimas?",a:["Conventional (C)","Social (S)","Artistic (A)"],c:2,e:"Artistic menyukai kreativitas, ekspresi diri, dan kebebasan menghasilkan karya."},
+{q:"Kasus 4 — Naya senang mendengarkan teman yang punya masalah, memberi dukungan, dan membantu mereka belajar. Tipe apakah Naya?",a:["Social (S)","Realistic (R)","Enterprising (E)"],c:0,e:"Social menyukai kegiatan membantu, mengajar, membimbing, dan berinteraksi dengan orang lain."},
+{q:"Kasus 5 — Farhan berani memimpin kegiatan, membagi tugas, mengajak orang lain, dan menawarkan ide agar acara berhasil. Tipe apakah Farhan?",a:["Investigative (I)","Enterprising (E)","Conventional (C)"],c:1,e:"Enterprising menyukai memimpin, memengaruhi, mengambil inisiatif, dan menggerakkan orang lain."},
+{q:"Kasus 6 — Lala teliti menyusun arsip, mencatat pemasukan, dan memastikan semua dokumen tersusun rapi sesuai aturan. Tipe apakah Lala?",a:["Artistic (A)","Social (S)","Conventional (C)"],c:2,e:"Conventional menyukai pekerjaan teratur, teliti, sistematis, dan mengikuti prosedur."}
+];
+let i=0,score=0,locked=false;
+function begin(){document.getElementById('start').classList.add('hidden');document.getElementById('game').classList.remove('hidden');showQ()}
+function showQ(){locked=false;let q=qs[i];document.getElementById('counter').textContent=`KASUS ${i+1} DARI ${qs.length} • POIN ${score}`;document.getElementById('bar').style.width=(i/qs.length*100)+'%';document.getElementById('question').textContent=q.q;document.getElementById('feedback').classList.add('hidden');document.getElementById('next').disabled=true;document.getElementById('next').textContent=i===qs.length-1?'Lihat Hasil →':'Kasus Berikutnya →';let box=document.getElementById('options');box.innerHTML='';q.a.forEach((a,n)=>{let b=document.createElement('button');b.className='opt';b.textContent=a;b.onclick=()=>choose(n,b);box.appendChild(b)})}
+function choose(n,b){if(locked)return;locked=true;let q=qs[i];document.querySelectorAll('.opt').forEach(x=>x.disabled=true);if(n===q.c){score+=10;b.classList.add('selected');document.getElementById('feedback').innerHTML='✅ <b>Benar! +10 poin.</b><br>'+q.e}else{document.getElementById('feedback').innerHTML='❌ <b>Belum tepat.</b> Jawaban yang benar: <b>'+q.a[q.c]+'</b>.<br>'+q.e;document.querySelectorAll('.opt')[q.c].classList.add('selected')}document.getElementById('feedback').classList.remove('hidden');document.getElementById('next').disabled=false;document.getElementById('counter').textContent=`KASUS ${i+1} DARI ${qs.length} • POIN ${score}`}
+function nextQ(){i++;if(i<qs.length)showQ();else finish()}
+function finish(){document.getElementById('game').classList.add('hidden');document.getElementById('end').classList.remove('hidden');document.getElementById('bar').style.width='100%';document.getElementById('score').textContent=score+'/60';document.getElementById('rank').textContent=score===60?'Detektif Ahli! Semua kasus terpecahkan.':score>=40?'Detektif Andal! Penyelidikanmu bagus.':score>=20?'Detektif Berkembang! Terus berlatih.':'Detektif Pemula! Coba pelajari kembali petunjuknya.';document.getElementById('summary').textContent='RIASEC terdiri dari Realistic (praktis), Investigative (meneliti), Artistic (kreatif), Social (membantu), Enterprising (memimpin), dan Conventional (teratur). Seseorang dapat memiliki kombinasi beberapa tipe. Kesesuaian minat dengan lingkungan kerja dapat membantu kenyamanan dan perkembangan karier, tetapi pengalaman, nilai, kesempatan, dan kondisi lingkungan juga perlu dipertimbangkan.'}
+function restart(){i=0;score=0;document.getElementById('end').classList.add('hidden');document.getElementById('game').classList.remove('hidden');showQ()}
+</script>
+</body></html>
